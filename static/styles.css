@@ -37,12 +37,6 @@
   padding: 2rem;
 }
 
-.auth-logo {
-  justify-content: center;
-  margin-bottom: 0.5rem;
-  text-decoration: none;
-}
-
 .auth-tagline {
   text-align: center;
   color: var(--muted);
@@ -164,16 +158,37 @@ body {
 }
 
 .logo {
-  font-weight: 700;
-  font-size: 1.25rem;
   color: var(--text);
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
-.logo-icon { color: var(--accent); }
+.logo-icon { color: var(--accent); flex-shrink: 0; }
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.logo-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.logo-sub {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.auth-logo {
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
 
 .nav { display: flex; gap: 0.5rem; flex: 1; }
 

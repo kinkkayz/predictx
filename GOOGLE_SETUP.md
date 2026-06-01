@@ -25,7 +25,8 @@ The button appears automatically after you add **two** variables on Render. No c
    - Name: `PredictX Web`
    - **Authorized redirect URIs** → **Add URI**:
      ```
-     https://predictx-dwu1.onrender.com/api/auth/google/callback
+     https://fabapa.com/api/auth/google/callback
+     https://www.fabapa.com/api/auth/google/callback
      ```
      (If your Render URL is different, use that instead — no trailing slash.)
 
@@ -53,7 +54,7 @@ The button appears automatically after you add **two** variables on Render. No c
 
 ## Step 3 — Test
 
-1. Open [https://predictx-dwu1.onrender.com](https://predictx-dwu1.onrender.com)
+1. Open [https://fabapa.com](https://fabapa.com)
 2. You should see **Continue with Google** under the login form
 3. Click it → pick your Google account → you land in the app with $1,000 demo balance
 
@@ -64,7 +65,7 @@ The button appears automatically after you add **two** variables on Render. No c
 | Problem | Fix |
 |---------|-----|
 | No Google button | `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` missing on Render — redeploy after adding |
-| `redirect_uri_mismatch` | Redirect URI in Google must **exactly** match `https://YOUR-SITE.onrender.com/api/auth/google/callback` |
+| `redirect_uri_mismatch` | Redirect URI must **exactly** match `https://fabapa.com/api/auth/google/callback` (add `www` too if you use it) |
 | `access_denied` | Add your Gmail under OAuth consent screen → **Test users** |
 | Google works but email login fails for same address | Use Google for that email, or use a different email for password signup |
 

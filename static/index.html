@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PredictX — Prediction Markets</title>
+  <title>PredictX on fabapa — Prediction Markets</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
@@ -12,7 +12,13 @@
   <!-- AUTH -->
   <div id="view-auth" class="auth-page">
     <div class="auth-card">
-      <a href="#" class="logo auth-logo"><span class="logo-icon">◆</span> PredictX</a>
+      <a href="#" class="logo auth-logo">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">
+          <span class="logo-title">PredictX</span>
+          <span class="logo-sub">on fabapa</span>
+        </span>
+      </a>
       <p class="auth-tagline">Sign in to trade with your demo wallet ($1,000)</p>
 
       <a id="google-btn" href="/api/auth/google" class="btn google-btn hidden">
@@ -65,7 +71,11 @@
   <header class="header">
     <div class="header-inner">
       <a href="#" class="logo" onclick="navigate('home'); return false;">
-        <span class="logo-icon">◆</span> PredictX
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">
+          <span class="logo-title">PredictX</span>
+          <span class="logo-sub">on fabapa</span>
+        </span>
       </a>
       <nav class="nav">
         <a href="#" class="nav-link active" data-view="home" onclick="navigate('home'); return false;">Markets</a>
@@ -88,7 +98,7 @@
     <section id="view-home" class="view active">
       <div class="hero">
         <h1>Trade on <em>any</em> event</h1>
-        <p>Create prediction markets and bet Yes or No. Prices move with supply and demand — just like Polymarket.</p>
+        <p>PredictX on fabapa — create markets and bet Yes or No. Prices move with supply and demand.</p>
       </div>
       <div class="toolbar">
         <input id="search-input" type="search" placeholder="Search markets..." class="search" />

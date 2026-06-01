@@ -12,7 +12,7 @@ import auth
 import config
 from db import db, init_db
 
-app = FastAPI(title="PredictX", description="Prediction markets on any event")
+app = FastAPI(title="PredictX on fabapa", description="Prediction markets on fabapa.com")
 app.add_middleware(
     SessionMiddleware,
     secret_key=config.session_secret_key(),
