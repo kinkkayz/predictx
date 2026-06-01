@@ -25,6 +25,15 @@ Now it uses **PostgreSQL** — users, balances, and markets survive redeploys.
 |-----|--------|
 | `ADMIN_EMAIL` | Your sign-up email (only you can resolve markets) |
 
+### 4. Google sign-in (optional)
+
+On the **predictx** web service, add:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+Step-by-step: **[GOOGLE_SETUP.md](GOOGLE_SETUP.md)**
+
 ---
 
 ## Local development
