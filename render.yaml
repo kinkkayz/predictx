@@ -1,4 +1,10 @@
-# Deploy at https://render.com — connect this repo and Render reads this file.
+# Deploy at https://render.com — Blueprint with persistent Postgres
+databases:
+  - name: predictx-db
+    plan: free
+    databaseName: predictx
+    user: predictx
+
 services:
   - type: web
     name: predictx
@@ -13,5 +19,8 @@ services:
         value: "3.12.0"
       - key: BASE_URL
         value: https://predictx-dwu1.onrender.com
-      # Set in Render dashboard (do not commit secrets):
-      # SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+      - key: DATABASE_URL
+        fromDatabase:
+          name: predictx-db
+          property: connectionString
+      # Optional: ADMIN_EMAIL=your@email.com

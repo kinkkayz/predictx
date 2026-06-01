@@ -44,7 +44,7 @@ Or run `python main.py` in one terminal and `cloudflared tunnel --url http://loc
 - Each market starts with equal Yes/No liquidity (50/50 implied probability).
 - When you buy Yes shares, you add USDC to the pool; the Yes price rises (like Polymarket).
 - Shares pay **$1 each** if your side wins when the market is resolved.
-- Your balance and positions persist in a local SQLite database (`predict.db`).
+- **Local:** SQLite file (`predict.db`). **Render:** PostgreSQL (data survives redeploys — see [RENDER_ENV.md](RENDER_ENV.md)).
 
 ## API
 

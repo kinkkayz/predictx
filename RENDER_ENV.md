@@ -1,31 +1,44 @@
-# Render setup (simple)
+# Persistent data on Render
 
-**You do not need to add any environment variables.**
+Redeploys used to wipe data because the app stored everything in a **local SQLite file**.  
+Now it uses **PostgreSQL** — users, balances, and markets survive redeploys.
 
-Render automatically provides your site URL. Login sessions are configured in code.
+## If you already have a live site (do this once)
 
-## If you already added variables
+### 1. Create a database
 
-1. [dashboard.render.com](https://dashboard.render.com) → **predictx** → **Environment**
-2. **Delete every variable** (especially if `SECRET_KEY` contains `GOCSPX-` — that is a Google secret, not the right field)
-3. Click **Save, rebuild, and deploy**
-4. Wait until **Live**, then open your site and **Sign up** with email + password
+1. [dashboard.render.com](https://dashboard.render.com) → **New +** → **PostgreSQL**
+2. Name: `predictx-db` → **Free** → **Create Database**
+3. Wait until status is **Available**
 
-## Admin: only you can resolve markets
+### 2. Connect it to your web service
 
-Add **one** variable with the **same email** you use to sign up:
+1. Open the **predictx** web service (not the database)
+2. **Environment** → **Add Environment Variable**
+3. Key: `DATABASE_URL`
+4. Value: open **predictx-db** → copy **Internal Database URL** (starts with `postgresql://`)
+5. **Save, rebuild, and deploy**
+
+### 3. Optional admin email
 
 | Key | Value |
 |-----|--------|
-| `ADMIN_EMAIL` | `you@example.com` |
+| `ADMIN_EMAIL` | Your sign-up email (only you can resolve markets) |
 
-Only that account sees **Resolve Yes / No** and can settle markets.
+---
 
-## Optional: Google sign-in later
+## Local development
 
-Only if you want it — add exactly these two variables (nothing else):
+No `DATABASE_URL` → uses `predict.db` on your PC (same as before).
 
-- `GOOGLE_CLIENT_ID` — from Google Cloud Console
-- `GOOGLE_CLIENT_SECRET` — the `GOCSPX-...` value
+---
 
-See [GOOGLE_SETUP.md](GOOGLE_SETUP.md).
+## New deploys from Blueprint
+
+`render.yaml` includes Postgres automatically. Use **New → Blueprint** and connect the repo.
+
+---
+
+## Note
+
+Render **free Postgres** may expire after 90 days of inactivity (Render policy). For a long-lived demo, check your Render dashboard or upgrade.
