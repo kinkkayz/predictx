@@ -1,36 +1,33 @@
 # Google Sign-In Setup
 
+**Prerequisite:** Add `SECRET_KEY`, `ENV`, and `BASE_URL` on Render first — see [RENDER_ENV.md](RENDER_ENV.md).
+
 ## 1. Google Cloud Console
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a project (or pick an existing one)
 3. **APIs & Services** → **OAuth consent screen**
    - User type: **External**
-   - Add your email as a test user (while app is in "Testing")
+   - Add your email as a **test user** (while app is in "Testing")
 4. **APIs & Services** → **Credentials** → **Create Credentials** → **OAuth client ID**
    - Application type: **Web application**
-   - **Authorized redirect URIs** — add both:
+   - **Authorized redirect URIs** — add:
      - `https://predictx-dwu1.onrender.com/api/auth/google/callback`
-     - `http://localhost:8000/api/auth/google/callback` (for local dev)
+     - `http://localhost:8000/api/auth/google/callback` (optional, for local dev)
 
 Copy the **Client ID** and **Client secret**.
 
-## 2. Render environment variables
+## 2. Add to Render
 
-In [Render Dashboard](https://dashboard.render.com) → your **predictx** service → **Environment**:
+[dashboard.render.com](https://dashboard.render.com) → your service → **Environment** → **Add Environment Variable**:
 
 | Key | Value |
 |-----|--------|
-| `SECRET_KEY` | Long random string (e.g. run `python -c "import secrets; print(secrets.token_hex(32))"`) |
-| `ENV` | `production` |
-| `BASE_URL` | `https://predictx-dwu1.onrender.com` |
-| `GOOGLE_CLIENT_ID` | From Google Console |
-| `GOOGLE_CLIENT_SECRET` | From Google Console |
+| `GOOGLE_CLIENT_ID` | Paste Client ID |
+| `GOOGLE_CLIENT_SECRET` | Paste Client secret |
 
-Save → Render redeploys automatically.
+**Save Changes** and wait for redeploy.
 
 ## 3. Verify
 
-Open your site → **Sign up** → **Continue with Google** should appear and work after login.
-
-Without Google env vars, email/password signup still works.
+Open your site → you should see **Continue with Google** on the login screen.

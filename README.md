@@ -21,6 +21,12 @@ python main.py
 
 Open **http://localhost:8000** in your browser.
 
+## Render environment variables
+
+Render does **not** load `.env` from the repo. Add variables in the dashboard:
+
+**[RENDER_ENV.md](RENDER_ENV.md)** — step-by-step for `SECRET_KEY`, `ENV`, `BASE_URL`, and Google OAuth.
+
 ## Share with others (public link)
 
 See **[DEPLOY.md](DEPLOY.md)** for full instructions.
