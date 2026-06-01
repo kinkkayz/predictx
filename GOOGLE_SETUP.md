@@ -1,33 +1,88 @@
-# Google Sign-In Setup
+# Google Sign-In — setup checklist
 
-**Prerequisite:** Add `SECRET_KEY`, `ENV`, and `BASE_URL` on Render first — see [RENDER_ENV.md](RENDER_ENV.md).
+The button appears automatically after you add **two** variables on Render. No code changes needed.
 
-## 1. Google Cloud Console
+---
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a project (or pick an existing one)
-3. **APIs & Services** → **OAuth consent screen**
-   - User type: **External**
-   - Add your email as a **test user** (while app is in "Testing")
-4. **APIs & Services** → **Credentials** → **Create Credentials** → **OAuth client ID**
+## Step 1 — Google Cloud (5 minutes)
+
+1. Open **[console.cloud.google.com](https://console.cloud.google.com/)** and sign in.
+
+2. **Select a project** (top bar) → **New Project** → name it `PredictX` → **Create**.
+
+3. **OAuth consent screen** (left menu → APIs & Services):
+   - Click **Get started** or **Configure**
+   - User type: **External** → **Create**
+   - App name: `PredictX`
+   - User support email: your email
+   - Developer contact: your email
+   - **Save and continue** through Scopes (defaults are fine)
+   - **Test users** → **Add users** → add **your Gmail** (required while app is in "Testing")
+   - **Save**
+
+4. **Credentials** → **Create credentials** → **OAuth client ID**:
    - Application type: **Web application**
-   - **Authorized redirect URIs** — add:
-     - `https://predictx-dwu1.onrender.com/api/auth/google/callback`
-     - `http://localhost:8000/api/auth/google/callback` (optional, for local dev)
+   - Name: `PredictX Web`
+   - **Authorized redirect URIs** → **Add URI**:
+     ```
+     https://predictx-dwu1.onrender.com/api/auth/google/callback
+     ```
+     (If your Render URL is different, use that instead — no trailing slash.)
 
-Copy the **Client ID** and **Client secret**.
+5. Click **Create**. Copy:
+   - **Client ID** → looks like `123456789-xxxx.apps.googleusercontent.com`
+   - **Client secret** → looks like `GOCSPX-xxxxxxxx`
 
-## 2. Add to Render
+---
 
-[dashboard.render.com](https://dashboard.render.com) → your service → **Environment** → **Add Environment Variable**:
+## Step 2 — Render (1 minute)
 
-| Key | Value |
-|-----|--------|
-| `GOOGLE_CLIENT_ID` | Paste Client ID |
-| `GOOGLE_CLIENT_SECRET` | Paste Client secret |
+1. [dashboard.render.com](https://dashboard.render.com) → open **predictx** (web service)
+2. **Environment** → **Add Environment Variable**
 
-**Save Changes** and wait for redeploy.
+| Key | Paste this |
+|-----|------------|
+| `GOOGLE_CLIENT_ID` | Client ID (ends in `.apps.googleusercontent.com`) |
+| `GOOGLE_CLIENT_SECRET` | Client secret (starts with `GOCSPX-`) |
 
-## 3. Verify
+3. **Save, rebuild, and deploy** → wait until **Live**
 
-Open your site → you should see **Continue with Google** on the login screen.
+**Do not** put the Google secret in `SECRET_KEY`. Only use the two keys above.
+
+---
+
+## Step 3 — Test
+
+1. Open [https://predictx-dwu1.onrender.com](https://predictx-dwu1.onrender.com)
+2. You should see **Continue with Google** under the login form
+3. Click it → pick your Google account → you land in the app with $1,000 demo balance
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| No Google button | `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` missing on Render — redeploy after adding |
+| `redirect_uri_mismatch` | Redirect URI in Google must **exactly** match `https://YOUR-SITE.onrender.com/api/auth/google/callback` |
+| `access_denied` | Add your Gmail under OAuth consent screen → **Test users** |
+| Google works but email login fails for same address | Use Google for that email, or use a different email for password signup |
+
+---
+
+## Optional: local testing
+
+Add to a `.env` file (not committed):
+
+```
+GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-your-secret
+```
+
+Also add redirect URI in Google:
+
+```
+http://localhost:8000/api/auth/google/callback
+```
+
+Run `python main.py` and open http://localhost:8000

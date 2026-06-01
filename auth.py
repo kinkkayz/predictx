@@ -24,7 +24,14 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
 
 
 def google_enabled() -> bool:
-    return bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        return False
+    # Catch swapped ID and secret (common setup mistake)
+    if GOOGLE_CLIENT_ID.startswith("GOCSPX-"):
+        return False
+    if not GOOGLE_CLIENT_ID.endswith(".apps.googleusercontent.com"):
+        return False
+    return GOOGLE_CLIENT_SECRET.startswith("GOCSPX-")
 
 
 def base_url(request: Request) -> str:
