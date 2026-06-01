@@ -11,6 +11,7 @@ import amm
 import auth
 import config
 from db import db, init_db
+from db_reset import reset_demo_data
 
 app = FastAPI(title="PredictX on fabapa", description="Prediction markets on fabapa.com")
 app.add_middleware(
@@ -395,6 +396,12 @@ async def portfolio(user: dict = Depends(auth.get_current_user)):
         data = auth.user_from_row(row)
         data["positions"] = enrich_positions(conn, user["id"])
         return data
+
+
+@app.post("/api/admin/reset-demo")
+async def admin_reset_demo(user: dict = Depends(auth.get_current_user)):
+    auth.require_admin(user)
+    return reset_demo_data()
 
 
 @app.get("/api/categories")

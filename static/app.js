@@ -64,6 +64,8 @@ function updateHeader() {
   if (!state.user) return;
   document.getElementById("header-balance").textContent = formatMoney(state.user.balance);
   document.getElementById("header-name").textContent = state.user.display_name;
+  const adminPanel = document.getElementById("admin-panel");
+  if (adminPanel) adminPanel.classList.toggle("hidden", !state.user.is_admin);
 }
 
 function switchAuthTab(tab) {
@@ -138,6 +140,26 @@ async function submitSignup(e) {
     toast("Account created — $1,000 demo credits added!", "success");
   } catch (err) {
     toast(err.message, "error");
+  }
+}
+
+async function resetDemoData() {
+  if (
+    !confirm(
+      "Reset ALL markets, delete every bet, and set every account to $1,000? This cannot be undone."
+    )
+  ) {
+    return;
+  }
+  try {
+    const res = await api("/api/admin/reset-demo", { method: "POST" });
+    state.user.balance = 1000;
+    updateHeader();
+    toast(res.message || "Demo reset complete", "success");
+    navigate("home");
+  } catch (e) {
+    if (e.status === 401 || e.status === 403) return toast(e.message, "error");
+    toast(e.message, "error");
   }
 }
 
