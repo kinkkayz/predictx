@@ -11,6 +11,16 @@ Render automatically provides your site URL. Login sessions are configured in co
 3. Click **Save, rebuild, and deploy**
 4. Wait until **Live**, then open your site and **Sign up** with email + password
 
+## Admin: only you can resolve markets
+
+Add **one** variable with the **same email** you use to sign up:
+
+| Key | Value |
+|-----|--------|
+| `ADMIN_EMAIL` | `you@example.com` |
+
+Only that account sees **Resolve Yes / No** and can settle markets.
+
 ## Optional: Google sign-in later
 
 Only if you want it — add exactly these two variables (nothing else):

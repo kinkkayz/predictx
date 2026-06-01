@@ -27,3 +27,17 @@ def public_base_url(request_base: str = "") -> str:
     if request_base:
         return request_base.rstrip("/")
     return "http://localhost:8000"
+
+
+def admin_emails() -> set[str]:
+    raw = os.environ.get("ADMIN_EMAIL", "").strip()
+    if not raw:
+        return set()
+    return {e.strip().lower() for e in raw.split(",") if e.strip()}
+
+
+def is_admin(email: str | None) -> bool:
+    if not email:
+        return False
+    admins = admin_emails()
+    return bool(admins) and email.lower() in admins

@@ -252,7 +252,8 @@ function renderMarketDetail() {
   document.getElementById("liq-stat").textContent = formatMoney(m.yes_pool + m.no_pool);
 
   const resolvePanel = document.getElementById("resolve-panel");
-  resolvePanel.style.display = m.status === "open" ? "flex" : "none";
+  const canResolve = state.user?.is_admin && m.status === "open";
+  resolvePanel.style.display = canResolve ? "flex" : "none";
 
   const resolvedBanner = document.getElementById("resolved-banner");
   if (m.status === "resolved") {

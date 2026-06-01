@@ -5,6 +5,7 @@ import bcrypt
 from authlib.integrations.starlette_client import OAuth
 from fastapi import HTTPException, Request
 
+import config
 from db import db
 
 oauth = OAuth()
@@ -45,14 +46,19 @@ def verify_password(password: str, password_hash: str | None) -> bool:
         return False
 
 
-def public_user(row) -> dict:
+def public_user(row, *, is_admin: bool = False) -> dict:
     return {
         "id": row["id"],
         "email": row["email"],
         "display_name": row["display_name"],
         "balance": round(row["balance"], 2),
         "auth_provider": row["auth_provider"],
+        "is_admin": is_admin,
     }
+
+
+def user_from_row(row) -> dict:
+    return public_user(row, is_admin=config.is_admin(row["email"]))
 
 
 def get_user_by_id(conn, user_id: str):
@@ -83,14 +89,14 @@ def create_local_user(conn, email: str, password: str, display_name: str) -> dic
         (user_id, email, display_name.strip(), hash_password(password)),
     )
     row = get_user_by_id(conn, user_id)
-    return public_user(row)
+    return user_from_row(row)
 
 
 def create_google_user(conn, google_id: str, email: str, display_name: str) -> dict:
     email = email.lower().strip()
     existing = get_user_by_google_id(conn, google_id)
     if existing:
-        return public_user(existing)
+        return user_from_row(existing)
 
     by_email = get_user_by_email(conn, email)
     if by_email:
@@ -101,7 +107,7 @@ def create_google_user(conn, google_id: str, email: str, display_name: str) -> d
             (google_id, by_email["id"]),
         )
         row = get_user_by_id(conn, by_email["id"])
-        return public_user(row)
+        return user_from_row(row)
 
     user_id = f"u-{uuid.uuid4().hex[:10]}"
     conn.execute(
@@ -112,7 +118,7 @@ def create_google_user(conn, google_id: str, email: str, display_name: str) -> d
         (user_id, email, display_name.strip() or email.split("@")[0], google_id),
     )
     row = get_user_by_id(conn, user_id)
-    return public_user(row)
+    return user_from_row(row)
 
 
 def login_session(request: Request, user: dict) -> None:
@@ -133,7 +139,13 @@ def get_current_user(request: Request) -> dict:
         if not row:
             request.session.clear()
             raise HTTPException(401, "Session expired. Please log in again.")
-        return public_user(row)
+        return user_from_row(row)
+
+
+def require_admin(user: dict) -> dict:
+    if not user.get("is_admin"):
+        raise HTTPException(403, "Only the site admin can resolve markets.")
+    return user
 
 
 def optional_user(request: Request) -> dict | None:
@@ -142,4 +154,4 @@ def optional_user(request: Request) -> dict | None:
         return None
     with db() as conn:
         row = get_user_by_id(conn, user_id)
-        return public_user(row) if row else None
+        return user_from_row(row) if row else None

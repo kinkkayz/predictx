@@ -145,7 +145,7 @@ async def auth_login(body: LoginBody, request: Request):
             raise HTTPException(
                 400, "This account uses Google sign-in. Click Continue with Google."
             )
-        user = auth.public_user(row)
+        user = auth.user_from_row(row)
     auth.login_session(request, user)
     return user
 
@@ -345,6 +345,7 @@ async def resolve_market(
     body: ResolveBody,
     user: dict = Depends(auth.get_current_user),
 ):
+    auth.require_admin(user)
     if body.resolution not in ("yes", "no"):
         raise HTTPException(400, "resolution must be 'yes' or 'no'")
 
@@ -391,7 +392,7 @@ async def resolve_market(
 async def portfolio(user: dict = Depends(auth.get_current_user)):
     with db() as conn:
         row = auth.get_user_by_id(conn, user["id"])
-        data = auth.public_user(row)
+        data = auth.user_from_row(row)
         data["positions"] = enrich_positions(conn, user["id"])
         return data
 
