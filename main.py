@@ -9,22 +9,17 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import amm
 import auth
+import config
 from db import db, init_db
-
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
-if SECRET_KEY == "dev-secret-change-in-production" and os.environ.get("ENV") == "production":
-    import warnings
-
-    warnings.warn("Set SECRET_KEY in production")
 
 app = FastAPI(title="PredictX", description="Prediction markets on any event")
 app.add_middleware(
     SessionMiddleware,
-    secret_key=SECRET_KEY,
+    secret_key=config.session_secret_key(),
     session_cookie="predictx_session",
     max_age=60 * 60 * 24 * 14,
     same_site="lax",
-    https_only=os.environ.get("ENV") == "production",
+    https_only=config.is_production(),
 )
 init_db()
 

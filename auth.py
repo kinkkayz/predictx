@@ -27,10 +27,9 @@ def google_enabled() -> bool:
 
 
 def base_url(request: Request) -> str:
-    env = os.environ.get("BASE_URL", "").strip()
-    if env:
-        return env.rstrip("/")
-    return str(request.base_url).rstrip("/")
+    import config
+
+    return config.public_base_url(str(request.base_url))
 
 
 def hash_password(password: str) -> str:

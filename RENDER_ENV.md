@@ -1,56 +1,21 @@
-# Add environment variables on Render
+# Render setup (simple)
 
-Render **does not** use a `.env` file from your repo. You add variables in the **Render website**.
+**You do not need to add any environment variables.**
 
-## Step-by-step
+Render automatically provides your site URL. Login sessions are configured in code.
 
-1. Open [dashboard.render.com](https://dashboard.render.com)
-2. Click your service (**predictx** or **predictx-dwu1**)
-3. In the left sidebar, click **Environment**
-4. Click **+ Add Environment Variable**
-5. Add each row below (one at a time)
-6. Click **Save Changes** at the bottom  
-   → Render redeploys automatically (~2–5 min)
+## If you already added variables
 
-## Variables to add
+1. [dashboard.render.com](https://dashboard.render.com) → **predictx** → **Environment**
+2. **Delete every variable** (especially if `SECRET_KEY` contains `GOCSPX-` — that is a Google secret, not the right field)
+3. Click **Save, rebuild, and deploy**
+4. Wait until **Live**, then open your site and **Sign up** with email + password
 
-### Required (do these first)
+## Optional: Google sign-in later
 
-| Key | Value |
-|-----|--------|
-| `SECRET_KEY` | Paste a long random string — generate one: `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `ENV` | `production` |
-| `BASE_URL` | `https://predictx-dwu1.onrender.com` |
+Only if you want it — add exactly these two variables (nothing else):
 
-Use **your exact** Render URL if it’s different (top of the service page, e.g. `https://predictx-xxxx.onrender.com`).
+- `GOOGLE_CLIENT_ID` — from Google Cloud Console
+- `GOOGLE_CLIENT_SECRET` — the `GOCSPX-...` value
 
-### Optional (only for Google sign-in)
-
-| Key | Value |
-|-----|--------|
-| `GOOGLE_CLIENT_ID` | From [Google Cloud Console](https://console.cloud.google.com/) → Credentials |
-| `GOOGLE_CLIENT_SECRET` | Same place as Client ID |
-
-See [GOOGLE_SETUP.md](GOOGLE_SETUP.md) for Google OAuth setup.
-
-**Without Google variables:** email/password signup and login still work. The Google button stays hidden.
-
-## Checklist
-
-- [ ] `SECRET_KEY` set (keeps users logged in across redeploys)
-- [ ] `ENV` = `production`
-- [ ] `BASE_URL` = your `https://….onrender.com` URL (no trailing slash)
-- [ ] Saved and deploy finished (green **Live**)
-- [ ] Google vars (only if you want “Continue with Google”)
-
-## Troubleshooting
-
-**“I don’t see Environment”**  
-You must open the **Web Service**, not the project overview. Click the service name first.
-
-**“render.yaml has them but they’re missing”**  
-If you created the service with **New Web Service** (not Blueprint), `render.yaml` is ignored. Add variables manually as above.
-
-**Google login fails**  
-`BASE_URL` must match your live URL exactly. Redirect URI in Google must be:  
-`https://YOUR-URL.onrender.com/api/auth/google/callback`
+See [GOOGLE_SETUP.md](GOOGLE_SETUP.md).
