@@ -11,3 +11,7 @@ services:
         value: production
       - key: PYTHON_VERSION
         value: "3.12.0"
+      - key: BASE_URL
+        value: https://predictx-dwu1.onrender.com
+      # Set in Render dashboard (do not commit secrets):
+      # SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET

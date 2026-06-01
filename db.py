@@ -25,13 +25,36 @@ def db():
         conn.close()
 
 
+def _migrate_users(conn: sqlite3.Connection) -> None:
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(users)")}
+    migrations = [
+        ("email", "ALTER TABLE users ADD COLUMN email TEXT"),
+        ("password_hash", "ALTER TABLE users ADD COLUMN password_hash TEXT"),
+        ("google_id", "ALTER TABLE users ADD COLUMN google_id TEXT"),
+        ("auth_provider", "ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'local'"),
+    ]
+    for name, sql in migrations:
+        if name not in cols:
+            conn.execute(sql)
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL"
+    )
+    conn.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL"
+    )
+
+
 def init_db() -> None:
     with db() as conn:
         conn.executescript(
             """
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
+                email TEXT,
                 display_name TEXT NOT NULL,
+                password_hash TEXT,
+                google_id TEXT,
+                auth_provider TEXT NOT NULL DEFAULT 'local',
                 balance REAL NOT NULL DEFAULT 1000.0,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
             );
@@ -77,6 +100,7 @@ def init_db() -> None:
             );
             """
         )
+        _migrate_users(conn)
 
         count = conn.execute("SELECT COUNT(*) FROM markets").fetchone()[0]
         if count == 0:

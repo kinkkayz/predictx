@@ -1,5 +1,4 @@
 const API = "";
-const STORAGE_KEY = "predictx_user";
 
 const state = {
   user: null,
@@ -8,46 +7,29 @@ const state = {
   filter: "all",
   search: "",
   view: "home",
+  authTab: "login",
 };
 
-function loadUser() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw) {
-    try {
-      state.user = JSON.parse(raw);
-    } catch {
-      state.user = null;
-    }
-  }
-}
-
-function saveUser(user) {
-  state.user = user;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+function apiErrorMessage(data, fallback = "Request failed") {
+  const d = data?.detail;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d) && d[0]?.msg) return d[0].msg;
+  return fallback;
 }
 
 async function api(path, options = {}) {
   const res = await fetch(API + path, {
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...options.headers },
     ...options,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || data.message || "Request failed");
-  return data;
-}
-
-async function ensureUser() {
-  if (state.user?.id) {
-    const fresh = await api(`/api/users/${state.user.id}`);
-    saveUser({ ...state.user, ...fresh });
-    return state.user;
+  if (!res.ok) {
+    const err = new Error(apiErrorMessage(data));
+    err.status = res.status;
+    throw err;
   }
-  const created = await api("/api/users", {
-    method: "POST",
-    body: JSON.stringify({ display_name: "Trader" }),
-  });
-  saveUser(created);
-  return state.user;
+  return data;
 }
 
 function formatPct(price) {
@@ -66,7 +48,115 @@ function toast(msg, type = "info") {
   el._t = setTimeout(() => (el.className = "toast"), 3000);
 }
 
+function showAuth() {
+  document.getElementById("view-auth").classList.remove("hidden");
+  document.getElementById("app-shell").classList.add("hidden");
+  state.user = null;
+}
+
+function showApp() {
+  document.getElementById("view-auth").classList.add("hidden");
+  document.getElementById("app-shell").classList.remove("hidden");
+  updateHeader();
+}
+
+function updateHeader() {
+  if (!state.user) return;
+  document.getElementById("header-balance").textContent = formatMoney(state.user.balance);
+  document.getElementById("header-name").textContent = state.user.display_name;
+}
+
+function switchAuthTab(tab) {
+  state.authTab = tab;
+  document.querySelectorAll(".auth-tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.tab === tab);
+  });
+  document.getElementById("login-form").classList.toggle("hidden", tab !== "login");
+  document.getElementById("signup-form").classList.toggle("hidden", tab !== "signup");
+}
+
+async function loadAuthConfig() {
+  try {
+    const cfg = await api("/api/auth/config");
+    if (cfg.google_enabled) {
+      document.getElementById("google-auth-block").classList.remove("hidden");
+      document.getElementById("google-btn").classList.remove("hidden");
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+async function fetchSession() {
+  try {
+    const user = await api("/api/auth/me");
+    state.user = user;
+    return true;
+  } catch (e) {
+    if (e.status === 401) return false;
+    throw e;
+  }
+}
+
+async function submitLogin(e) {
+  e.preventDefault();
+  const form = e.target;
+  try {
+    const user = await api("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: form.email.value,
+        password: form.password.value,
+      }),
+    });
+    state.user = user;
+    form.reset();
+    showApp();
+    navigate("home");
+    toast("Welcome back!", "success");
+  } catch (err) {
+    toast(err.message, "error");
+  }
+}
+
+async function submitSignup(e) {
+  e.preventDefault();
+  const form = e.target;
+  try {
+    const user = await api("/api/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({
+        email: form.email.value,
+        password: form.password.value,
+        display_name: form.display_name.value,
+      }),
+    });
+    state.user = user;
+    form.reset();
+    showApp();
+    navigate("home");
+    toast("Account created — $1,000 demo credits added!", "success");
+  } catch (err) {
+    toast(err.message, "error");
+  }
+}
+
+async function logout() {
+  try {
+    await api("/api/auth/logout", { method: "POST" });
+  } catch {
+    /* ignore */
+  }
+  showAuth();
+  switchAuthTab("login");
+  toast("Logged out", "info");
+}
+
 function navigate(view, marketId = null) {
+  if (!state.user) {
+    showAuth();
+    return;
+  }
   state.view = view;
   if (marketId) state.selectedMarketId = marketId;
   render();
@@ -85,6 +175,7 @@ async function loadMarkets() {
     state.markets = await api(`/api/markets${qs ? `?${qs}` : ""}`);
     renderMarkets();
   } catch (e) {
+    if (e.status === 401) return showAuth();
     toast(e.message, "error");
   }
 }
@@ -94,17 +185,19 @@ async function loadMarket(id) {
     state.currentMarket = await api(`/api/markets/${id}`);
     renderMarketDetail();
   } catch (e) {
+    if (e.status === 401) return showAuth();
     toast(e.message, "error");
   }
 }
 
 async function loadPortfolio() {
-  await ensureUser();
   try {
-    const data = await api(`/api/users/${state.user.id}`);
-    saveUser({ ...state.user, ...data });
+    const data = await api("/api/portfolio");
+    state.user = { ...state.user, ...data };
+    updateHeader();
     renderPortfolio(data);
   } catch (e) {
+    if (e.status === 401) return showAuth();
     toast(e.message, "error");
   }
 }
@@ -223,21 +316,21 @@ function selectSide(side) {
 }
 
 async function placeBet() {
-  await ensureUser();
   const amount = parseFloat(document.getElementById("bet-amount").value);
   if (!amount || amount <= 0) return toast("Enter a valid amount", "error");
 
   try {
     const res = await api(`/api/markets/${state.currentMarket.id}/bet`, {
       method: "POST",
-      body: JSON.stringify({ user_id: state.user.id, side: selectedSide, amount }),
+      body: JSON.stringify({ side: selectedSide, amount }),
     });
-    saveUser({ ...state.user, balance: res.balance });
+    state.user.balance = res.balance;
     state.currentMarket = res.market;
-    document.getElementById("header-balance").textContent = formatMoney(res.balance);
+    updateHeader();
     renderMarketDetail();
     toast(`Bought ${res.trade.shares.toFixed(2)} ${selectedSide.toUpperCase()} shares`, "success");
   } catch (e) {
+    if (e.status === 401) return showAuth();
     toast(e.message, "error");
   }
 }
@@ -265,6 +358,7 @@ async function createMarket(e) {
     toast("Market created!", "success");
     navigate("market", m.id);
   } catch (err) {
+    if (err.status === 401) return showAuth();
     toast(err.message, "error");
   }
 }
@@ -277,14 +371,18 @@ async function resolveMarket(resolution) {
       body: JSON.stringify({ resolution }),
     });
     toast(`Market resolved: ${resolution.toUpperCase()}`, "success");
+    const me = await api("/api/auth/me");
+    state.user.balance = me.balance;
+    updateHeader();
     loadMarket(state.currentMarket.id);
   } catch (e) {
+    if (e.status === 401) return showAuth();
     toast(e.message, "error");
   }
 }
 
 function render() {
-  document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+  document.querySelectorAll("#app-shell .view").forEach((v) => v.classList.remove("active"));
   document.getElementById(`view-${state.view}`)?.classList.add("active");
   document.querySelectorAll(".nav-link").forEach((a) => {
     a.classList.toggle("active", a.dataset.view === state.view);
@@ -292,6 +390,7 @@ function render() {
 }
 
 function openCreateModal() {
+  if (!state.user) return showAuth();
   document.getElementById("create-modal").classList.add("open");
 }
 
@@ -299,13 +398,25 @@ function closeCreateModal() {
   document.getElementById("create-modal").classList.remove("open");
 }
 
-async function init() {
-  loadUser();
-  await ensureUser();
-  document.getElementById("header-balance").textContent = formatMoney(state.user.balance);
-  document.getElementById("header-name").textContent = state.user.display_name;
+function handleAuthQueryParams() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("logged_in") === "1") {
+    toast("Signed in with Google!", "success");
+    window.history.replaceState({}, "", "/");
+  }
+  const err = params.get("auth_error");
+  if (err) {
+    toast("Google sign-in failed. Try again or use email.", "error");
+    window.history.replaceState({}, "", "/");
+  }
+}
 
-  document.getElementById("search-input").addEventListener("input", (e) => {
+async function init() {
+  handleAuthQueryParams();
+  await loadAuthConfig();
+  switchAuthTab("login");
+
+  document.getElementById("search-input")?.addEventListener("input", (e) => {
     state.search = e.target.value;
     loadMarkets();
   });
@@ -320,7 +431,19 @@ async function init() {
   });
 
   selectSide("yes");
-  navigate("home");
+
+  try {
+    const ok = await fetchSession();
+    if (ok) {
+      showApp();
+      navigate("home");
+    } else {
+      showAuth();
+    }
+  } catch (e) {
+    toast(e.message, "error");
+    showAuth();
+  }
 }
 
 init();
