@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PredictX — Prediction Markets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo" onclick="navigate('home'); return false;">
+        <span class="logo-icon">◆</span> PredictX
+      </a>
+      <nav class="nav">
+        <a href="#" class="nav-link active" data-view="home" onclick="navigate('home'); return false;">Markets</a>
+        <a href="#" class="nav-link" data-view="portfolio" onclick="navigate('portfolio'); return false;">Portfolio</a>
+      </nav>
+      <div class="header-right">
+        <div class="balance-pill">
+          <span class="label">Balance</span>
+          <span id="header-balance">$1,000.00</span>
+        </div>
+        <span id="header-name" class="user-name">Trader</span>
+        <button class="btn primary" onclick="openCreateModal()">+ Create Market</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- HOME -->
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <h1>Trade on <em>any</em> event</h1>
+        <p>Create prediction markets and bet Yes or No. Prices move with supply and demand — just like Polymarket.</p>
+      </div>
+      <div class="toolbar">
+        <input id="search-input" type="search" placeholder="Search markets..." class="search" />
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="open">Open</button>
+          <button class="filter-btn" data-filter="resolved">Resolved</button>
+        </div>
+      </div>
+      <div id="markets-grid" class="markets-grid"></div>
+    </section>
+
+    <!-- MARKET DETAIL -->
+    <section id="view-market" class="view">
+      <button class="back-btn" onclick="navigate('home')">← Back to markets</button>
+      <div id="resolved-banner" class="resolved-banner"></div>
+      <div class="market-layout">
+        <div class="market-main">
+          <div class="market-header">
+            <span id="market-category" class="badge"></span>
+            <span id="market-status" class="status"></span>
+          </div>
+          <h1 id="market-title"></h1>
+          <p id="market-desc" class="desc"></p>
+
+          <div class="prob-display">
+            <div class="prob-labels">
+              <span class="yes">Yes <strong id="yes-price-lg">50%</strong></span>
+              <span class="no">No <strong id="no-price-lg">50%</strong></span>
+            </div>
+            <div class="prob-bar lg">
+              <div id="yes-bar" class="yes-seg" style="width:50%"></div>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat"><span class="stat-label">Volume</span><span id="vol-stat">$0</span></div>
+            <div class="stat"><span class="stat-label">Liquidity</span><span id="liq-stat">$0</span></div>
+          </div>
+
+          <div class="trades-box">
+            <h3>Recent trades</h3>
+            <ul id="recent-trades"></ul>
+          </div>
+        </div>
+
+        <aside class="trade-panel">
+          <div id="trade-form">
+            <h3>Place a bet</h3>
+            <div class="side-toggle">
+              <button id="btn-yes" class="side-btn yes active" onclick="selectSide('yes')">Yes</button>
+              <button id="btn-no" class="side-btn no" onclick="selectSide('no')">No</button>
+            </div>
+            <label class="field">
+              <span>Amount (USDC)</span>
+              <input id="bet-amount" type="number" min="1" step="1" value="25" placeholder="25" />
+            </label>
+            <div class="quick-amounts">
+              <button type="button" onclick="document.getElementById('bet-amount').value=10">$10</button>
+              <button type="button" onclick="document.getElementById('bet-amount').value=25">$25</button>
+              <button type="button" onclick="document.getElementById('bet-amount').value=50">$50</button>
+              <button type="button" onclick="document.getElementById('bet-amount').value=100">$100</button>
+            </div>
+            <button class="btn trade-btn" onclick="placeBet()">Buy shares</button>
+            <p class="hint">Demo credits only. Shares pay $1 each if your side wins at resolution.</p>
+          </div>
+
+          <div id="resolve-panel" class="resolve-panel">
+            <h4>Resolve market (demo)</h4>
+            <div class="resolve-btns">
+              <button class="btn yes" onclick="resolveMarket('yes')">Resolve Yes</button>
+              <button class="btn no" onclick="resolveMarket('no')">Resolve No</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section id="view-portfolio" class="view">
+      <div class="portfolio-header">
+        <h1>Portfolio</h1>
+        <div class="balance-card">
+          <span>Available balance</span>
+          <strong id="portfolio-balance">$0</strong>
+        </div>
+      </div>
+      <table class="positions-table">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Side</th>
+            <th>Shares</th>
+            <th>Avg price</th>
+            <th>Current</th>
+            <th>Value / Cost</th>
+          </tr>
+        </thead>
+        <tbody id="positions-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- CREATE MODAL -->
+  <div id="create-modal" class="modal">
+    <div class="modal-backdrop" onclick="closeCreateModal()"></div>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeCreateModal()">×</button>
+      <h2>Create a market</h2>
+      <p class="modal-sub">Bet on any event — sports, politics, crypto, or your own question.</p>
+      <form onsubmit="createMarket(event)">
+        <label class="field">
+          <span>Question / title *</span>
+          <input name="title" required minlength="3" placeholder="Will X happen by date Y?" />
+        </label>
+        <label class="field">
+          <span>Resolution criteria</span>
+          <textarea name="description" rows="3" placeholder="How will this market be resolved?"></textarea>
+        </label>
+        <label class="field">
+          <span>Category</span>
+          <input name="category" value="General" placeholder="Crypto, Sports, Politics..." />
+        </label>
+        <label class="field">
+          <span>End date (optional)</span>
+          <input name="end_date" type="date" />
+        </label>
+        <button type="submit" class="btn primary full">Create market</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
